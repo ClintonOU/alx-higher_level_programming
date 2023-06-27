@@ -1,33 +1,19 @@
 #!/usr/bin/python3
-"""
-This script prints all City objects
-from the database `hbtn_0e_14_usa`.
-"""
-
-from sys import argv
-from model_state import State, Base
-from model_city import City
+"""Script that deletes State objects with a name containing the letter a"""
+import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from model_state import Base, State
+from model_city import City
+
 
 if __name__ == "__main__":
-    """
-    Access to the database and get the cities
-    from the database.
-    """
-
-    db_url = "mysql+mysqldb://{}:{}@localhost:3306/{}".format(
-        argv[1], argv[2], argv[3])
-
-    engine = create_engine(db_url)
+    engine = create_engine('mysql+mysqldb://{}:{}@localhost/{}'.format(
+        sys.argv[1], sys.argv[2], sys.argv[3]), pool_pre_ping=True)
+    Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
-
     session = Session()
-
-    results = session.query(City, State).join(State)
-
-    for city, state in results.all():
-        print("{}: ({}) {}".format(state.name, city.id, city.name))
-
+    for row in session.query(State, City).join(City).order_by(City.id):
+        print("{:}: ({:}) {:}".format(row[0].name, row[1].id, row[1].name))
     session.commit()
     session.close()
